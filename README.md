@@ -1,1 +1,408 @@
-# E--commerce-website
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Shaikh E‑Commerce — Demo</title>
+    <meta name="description" content="Demo e‑commerce template with admin upload, responsive design, mock/Stripe checkout, basic SEO tips & hosting notes." />
+    <meta name="robots" content="index,follow" />
+    <!-- Basic styling & responsive layout -->
+    <style>
+        :root{
+            --accent:#0b7ddb; --muted:#666; --card:#fff; --bg:#f4f7fb;
+            --max-w:1100px;
+            --radius:10px;
+            font-family:Inter,Segoe UI,Roboto,Arial;
+        }
+        *{box-sizing:border-box}
+        body{margin:0;background:linear-gradient(180deg,#eef6ff 0%,var(--bg)100%);color:#222}
+        header{background:#fff;box-shadow:0 6px 18px rgba(10,20,40,.06);position:sticky;top:0;z-index:50}
+        .wrap{max-width:var(--max-w);margin:0 auto;padding:18px;display:flex;gap:16px;align-items:center}
+        .brand{display:flex;gap:12px;align-items:center}
+        .logo{width:48px;height:48px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+        .search{margin-left:auto;display:flex;gap:8px;align-items:center}
+        input[type="search"]{padding:10px 12px;border-radius:999px;border:1px solid #e6eef8;min-width:200px}
+        button{background:var(--accent);color:#fff;padding:10px 14px;border-radius:8px;border:0;cursor:pointer}
+        main{max-width:var(--max-w);margin:24px auto;padding:0 18px;display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start}
+        @media(max-width:900px){main{grid-template-columns:1fr} .aside{order:2}}
+        .hero{background:linear-gradient(90deg,#fff,rgba(255,255,255,.5));padding:18px;border-radius:12px;box-shadow:0 6px 20px rgba(50,60,80,.05);display:flex;gap:16px;align-items:center}
+        .hero .info{flex:1}
+        .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px}
+        @media(max-width:1000px){.grid{grid-template-columns:repeat(2,1fr)}}
+        @media(max-width:600px){.grid{grid-template-columns:1fr}}
+        .card{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 6px 18px rgba(30,40,60,.04);display:flex;flex-direction:column;gap:8px}
+        .thumb{height:160px;border-radius:8px;background:#f0f4fb;background-size:cover;background-position:center}
+        .meta{display:flex;justify-content:space-between;align-items:center}
+        .price{font-weight:700;color:var(--accent)}
+        .desc{color:var(--muted);font-size:14px}
+        .aside{position:relative}
+        .admin-panel{background:linear-gradient(180deg,#fff,#fbfdff);padding:12px;border-radius:12px;box-shadow:0 6px 18px rgba(30,40,60,.03)}
+        label{display:block;font-size:13px;margin:8px 0 6px;color:#333}
+        input[type="text"],input[type="number"],textarea{width:100%;padding:8px;border-radius:8px;border:1px solid #e6eef8}
+        .small{font-size:13px;color:var(--muted)}
+        .controls{display:flex;gap:8px;flex-wrap:wrap}
+        footer{max-width:var(--max-w);margin:36px auto 80px;padding:18px;color:var(--muted);font-size:13px}
+        .tag{display:inline-block;background:#eef6ff;color:var(--accent);padding:6px 10px;border-radius:999px;font-weight:600}
+        /* modal */
+        .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(8,12,20,.45);z-index:200}
+        .modal.show{display:flex}
+        .modal .box{background:#fff;padding:18px;border-radius:12px;width:420px;max-width:94%}
+        .mobile-hide{display:inline-block}
+        @media(max-width:640px){.mobile-hide{display:none}}
+    </style>
+</head>
+<body>
+    <header>
+        <div class="wrap">
+            <div class="brand">
+                <div class="logo">SE</div>
+                <div>
+                    <div style="font-weight:700">Shaikh E‑Commerce</div>
+                    <div style="font-size:13px;color:var(--muted)">Demo storefront</div>
+                </div>
+            </div>
+
+            <div class="search">
+                <input id="q" type="search" placeholder="Search products..." />
+                <button id="searchBtn">Search</button>
+                <button id="adminToggle" title="Open admin panel">Admin</button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section>
+            <div class="hero">
+                <div class="info">
+                    <div style="font-size:18px;font-weight:700">Quality products, fast checkout</div>
+                    <div class="small" style="margin-top:6px">Responsive demo with product upload, mock/Stripe checkout, admin area and SEO tips below.</div>
+                </div>
+                <div style="width:180px;text-align:right">
+                    <div class="tag">Demo Store</div>
+                    <div class="small" style="margin-top:6px">Mobile-ready • Local demo</div>
+                </div>
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px">
+                <div style="color:var(--muted)">Products (<span id="count">0</span>)</div>
+                <div style="display:flex;gap:8px">
+                    <button id="sortPrice">Sort by price</button>
+                    <button id="clearProducts">Reset Sample</button>
+                </div>
+            </div>
+
+            <div id="products" class="grid" style="margin-top:12px"></div>
+        </section>
+
+        <aside class="aside">
+            <div class="admin-panel">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div style="font-weight:700">Quick Cart</div>
+                    <div class="small">Items: <span id="cartCount">0</span></div>
+                </div>
+                <div id="cartList" style="margin-top:8px"></div>
+                <div style="margin-top:12px;display:flex;gap:8px">
+                    <button id="checkoutBtn">Checkout</button>
+                    <button id="clearCart" style="background:#e8eef8;color:#0b3f6b">Clear</button>
+                </div>
+                <hr style="margin:12px 0;border:none;border-top:1px solid #eef4ff">
+                <div style="font-weight:700;margin-bottom:8px">Admin Panel (secure)</div>
+                <div id="adminArea">
+                    <div class="small">Login to upload products.</div>
+                    <div style="margin-top:8px;display:flex;gap:8px">
+                        <input id="adminPass" type="password" placeholder="Admin password" />
+                        <button id="adminLogin">Login</button>
+                    </div>
+                </div>
+                <div id="adminControls" style="display:none;margin-top:10px">
+                    <label>Product name</label>
+                    <input id="pName" type="text" />
+                    <label>Price (USD)</label>
+                    <input id="pPrice" type="number" min="0" step="0.01" />
+                    <label>Description</label>
+                    <textarea id="pDesc" rows="3"></textarea>
+                    <label>Image</label>
+                    <input id="pImage" type="file" accept="image/*" />
+                    <div style="margin-top:8px" class="controls">
+                        <button id="addProduct">Add product</button>
+                        <button id="logout" style="background:#f3f5f7;color:#222">Logout</button>
+                    </div>
+                </div>
+            </div>
+
+            <div style="height:18px"></div>
+
+            <div class="admin-panel">
+                <div style="font-weight:700">Deployment & Security</div>
+                <div class="small" style="margin-top:8px">
+                    - Host on Netlify, Vercel, or any static host. For server APIs use AWS/GCP/Heroku.<br>
+                    - Use HTTPS, CSP, secure cookies, server-side auth for admin, and sanitize inputs.<br>
+                    - SEO: meta tags, structured data, fast images, sitemap.xml, robots.txt.
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <footer>
+        This is a single-file demo. Replace the placeholder Stripe key & backend to enable live payments. Admin is local-only for demo purposes.
+    </footer>
+
+    <!-- Modal: Mock Payment / Stripe fallback -->
+    <div id="modal" class="modal" role="dialog" aria-hidden="true">
+        <div class="box">
+            <div id="modalTitle" style="font-weight:700">Complete purchase</div>
+            <div id="modalBody" class="small" style="margin-top:8px"></div>
+            <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
+                <button id="payNow">Pay</button>
+                <button id="closeModal" style="background:#eef2f8;color:#0b3f6b">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ============================
+             Configuration (set for live)
+             ============================
+             - For Stripe Checkout: set STRIPE_PUBLISHABLE_KEY and BACKEND_CHECKOUT_URL.
+             - BACKEND_CHECKOUT_URL should be your server endpoint that creates a Stripe Checkout session.
+        */
+        const STRIPE_PUBLISHABLE_KEY = ""; // e.g. "pk_live_..."
+        const BACKEND_CHECKOUT_URL = "";   // e.g. "https://api.example.com/create-checkout-session"
+
+        /* App state using localStorage (demo) */
+        const STORAGE_KEY = "shaikh_products_v1";
+        const CART_KEY = "shaikh_cart_v1";
+        const ADMIN_PASSWORD = "admin"; // demo-only. Replace with secure server auth.
+
+        // DOM
+        const productsEl = document.getElementById("products");
+        const countEl = document.getElementById("count");
+        const cartCountEl = document.getElementById("cartCount");
+        const cartListEl = document.getElementById("cartList");
+
+        // Modal
+        const modal = document.getElementById("modal");
+        const modalBody = document.getElementById("modalBody");
+        const modalTitle = document.getElementById("modalTitle");
+
+        // Utility
+        function readStorage(){ return JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") }
+        function writeStorage(v){ localStorage.setItem(STORAGE_KEY, JSON.stringify(v)) }
+        function readCart(){ return JSON.parse(localStorage.getItem(CART_KEY) || "[]") }
+        function writeCart(v){ localStorage.setItem(CART_KEY, JSON.stringify(v)); renderCart() }
+
+        // Seed sample products if empty
+        function seed(){
+            if(!readStorage()){
+                const samples = [
+                    {id:genId(),name:"Classic Watch",price:49.99,desc:"Stainless steel, water resistant",img:"data:image/svg+xml;charset=utf-8,"+encodeURIComponent(sampleSVG("Watch"))},
+                    {id:genId(),name:"Blue Headphones",price:79.00,desc:"Over-ear comfort with deep bass",img:"data:image/svg+xml;charset=utf-8,"+encodeURIComponent(sampleSVG("Headphones"))},
+                    {id:genId(),name:"Urban Backpack",price:59.50,desc:"Laptop sleeve and water-resistant fabric",img:"data:image/svg+xml;charset=utf-8,"+encodeURIComponent(sampleSVG("Backpack"))}
+                ];
+                writeStorage(samples);
+            }
+        }
+        function sampleSVG(text){
+            return `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='400'><rect width='100%' height='100%' fill='#eef6ff'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-size='36' fill='#0b7ddb' font-family='Arial'>${text}</text></svg>`;
+        }
+        function genId(){ return Math.random().toString(36).slice(2,9) }
+
+        // Render products
+        function renderProducts(filter){
+            const list = readStorage() || [];
+            const items = filter ? list.filter(p=>p.name.toLowerCase().includes(filter)) : list;
+            productsEl.innerHTML = "";
+            countEl.textContent = items.length;
+            items.forEach(p=>{
+                const card = document.createElement("div"); card.className="card";
+                card.innerHTML = `
+                    <div class="thumb" style="background-image:url('${p.img}')"></div>
+                    <div style="display:flex;align-items:center;justify-content:space-between">
+                        <div style="font-weight:700">${escapeHtml(p.name)}</div>
+                        <div class="price">$${(+p.price).toFixed(2)}</div>
+                    </div>
+                    <div class="desc">${escapeHtml(p.desc)}</div>
+                    <div style="display:flex;gap:8px;margin-top:8px;">
+                        <button data-id="${p.id}" class="add">Add to cart</button>
+                        <button data-id="${p.id}" class="buy" style="background:#0b7ddb33;color:var(--accent)">Buy now</button>
+                    </div>
+                `;
+                productsEl.appendChild(card);
+            });
+        }
+
+        // Simple XSS-resistant renderer for text content
+        function escapeHtml(s){ if(!s) return ""; return s.replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]) }
+
+        // Cart functions
+        function addToCart(id){
+            const products = readStorage() || [];
+            const p = products.find(x=>x.id===id); if(!p) return;
+            const cart = readCart();
+            cart.push({id:p.id,name:p.name,price:p.price});
+            writeCart(cart);
+            toast("Added to cart");
+        }
+        function renderCart(){
+            const cart = readCart();
+            cartCountEl.textContent = cart.length;
+            cartListEl.innerHTML = cart.length ? cart.map((c,i)=>`<div style="display:flex;justify-content:space-between"><div>${escapeHtml(c.name)}</div><div>$${(+c.price).toFixed(2)} <button data-index="${i}" class="remove" style="background:transparent;border:0;color:#888;cursor:pointer">✕</button></div></div>`).join("") : '<div class="small">Cart is empty</div>';
+        }
+
+        function clearCart(){ writeCart([]); toast("Cart cleared") }
+
+        // Admin auth (demo-only)
+        const adminLoginBtn = document.getElementById("adminLogin");
+        const adminToggleBtn = document.getElementById("adminToggle");
+        const adminArea = document.getElementById("adminArea");
+        const adminControls = document.getElementById("adminControls");
+        const adminPass = document.getElementById("adminPass");
+        const logoutBtn = document.getElementById("logout");
+
+        function showAdminControls(show){
+            adminControls.style.display = show ? "block" : "none";
+            adminArea.style.display = show ? "none" : "block";
+        }
+
+        adminToggleBtn.addEventListener("click", ()=>{ adminPass.focus(); window.scrollTo({top:0,behavior:'smooth'}); });
+
+        adminLoginBtn.addEventListener("click", ()=>{
+            if(adminPass.value === ADMIN_PASSWORD){
+                showAdminControls(true);
+                adminPass.value = "";
+                toast("Admin logged in (demo)");
+            } else {
+                toast("Invalid password");
+            }
+        });
+        logoutBtn.addEventListener("click", ()=>{ showAdminControls(false); toast("Logged out") });
+
+        // Product upload
+        document.getElementById("addProduct").addEventListener("click", async ()=>{
+            const name = document.getElementById("pName").value.trim();
+            const price = parseFloat(document.getElementById("pPrice").value);
+            const desc = document.getElementById("pDesc").value.trim();
+            const file = document.getElementById("pImage").files[0];
+            if(!name || isNaN(price) || !file){ toast("Provide name, price and image"); return; }
+            const dataUrl = await fileToDataUrl(file);
+            const products = readStorage()||[];
+            products.unshift({id:genId(),name,price,desc,img:dataUrl});
+            writeStorage(products);
+            document.getElementById("pName").value = ""; document.getElementById("pPrice").value = ""; document.getElementById("pDesc").value = ""; document.getElementById("pImage").value = "";
+            renderProducts();
+            toast("Product added");
+        });
+
+        function fileToDataUrl(file){
+            return new Promise((res,rej)=>{
+                const fr = new FileReader();
+                fr.onload = ()=>res(fr.result);
+                fr.onerror = ()=>rej(fr.error);
+                fr.readAsDataURL(file);
+            })
+        }
+
+        // Events: delegated product handlers
+        productsEl.addEventListener("click", (e)=>{
+            const add = e.target.closest("button.add");
+            const buy = e.target.closest("button.buy");
+            if(add) addToCart(add.dataset.id);
+            if(buy) buyNow(buy.dataset.id);
+        });
+
+        // Cart events
+        cartListEl.addEventListener("click", (e)=>{
+            const btn = e.target.closest("button.remove");
+            if(btn){ const idx = Number(btn.dataset.index); const cart = readCart(); cart.splice(idx,1); writeCart(cart); }
+        });
+
+        // Search & sort
+        document.getElementById("searchBtn").addEventListener("click", ()=>{ renderProducts(document.getElementById("q").value.toLowerCase()) })
+        document.getElementById("q").addEventListener("keyup",(e)=>{ if(e.key==="Enter") renderProducts(document.getElementById("q").value.toLowerCase()) })
+        document.getElementById("sortPrice").addEventListener("click", ()=>{
+            const arr = (readStorage()||[]).slice().sort((a,b)=>a.price-b.price); writeStorage(arr); renderProducts();
+        });
+
+        // Reset products sample
+        document.getElementById("clearProducts").addEventListener("click", ()=>{
+            localStorage.removeItem(STORAGE_KEY);
+            seed(); renderProducts();
+            toast("Sample reset");
+        });
+
+        // Checkout: if STRIPE configured, attempt to call backend to create checkout session.
+        document.getElementById("checkoutBtn").addEventListener("click", async ()=>{
+            const cart = readCart();
+            if(!cart.length){ toast("Cart empty"); return; }
+            const total = cart.reduce((s,c)=>s+Number(c.price),0);
+            if(STRIPE_PUBLISHABLE_KEY && BACKEND_CHECKOUT_URL){
+                // Attempt live Stripe checkout (requires server)
+                try{
+                    const res = await fetch(BACKEND_CHECKOUT_URL, {
+                        method:"POST",
+                        headers:{"Content-Type":"application/json"},
+                        body:JSON.stringify({items:cart}) 
+                    });
+                    const data = await res.json();
+                    if(data && data.sessionId){
+                        // load stripe.js then redirect
+                        const stripeJs = await loadScript("https://js.stripe.com/v3/");
+                        const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+                        const r = await stripe.redirectToCheckout({sessionId:data.sessionId});
+                        if(r.error) throw r.error;
+                    } else throw new Error("Invalid session");
+                }catch(err){
+                    console.error(err);
+                    toast("Stripe checkout failed — opening mock payment.");
+                    showMockPayment(cart,total);
+                }
+            } else {
+                // Fallback: show mock payment modal
+                showMockPayment(cart,total);
+            }
+        });
+
+        async function buyNow(id){
+            const p = (readStorage()||[]).find(x=>x.id===id);
+            if(!p) return;
+            if(STRIPE_PUBLISHABLE_KEY && BACKEND_CHECKOUT_URL){
+                // In production you would POST the single product to your server to create session.
+                // Here we fallback to mock payment if backend not configured.
+            }
+            showMockPayment([ {id:p.id,name:p.name,price:p.price} ], p.price);
+        }
+
+        // Mock payment modal
+        const payNowBtn = document.getElementById("payNow");
+        const closeModalBtn = document.getElementById("closeModal");
+        payNowBtn.addEventListener("click", ()=>{ toast("Payment simulated. Order placed."); writeCart([]); modal.classList.remove("show") });
+        closeModalBtn.addEventListener("click", ()=>modal.classList.remove("show"));
+
+        function showMockPayment(cart,total){
+            modalBody.innerHTML = `<div class="small">Items (${cart.length})</div>` + cart.map(c=>`<div style="display:flex;justify-content:space-between">${escapeHtml(c.name)} <strong>$${(+c.price).toFixed(2)}</strong></div>`).join("") + `<hr style="margin:8px 0"><div style="display:flex;justify-content:space-between"><div class="small">Total</div><div style="font-weight:700">$${(+total).toFixed(2)}</div></div>`;
+            modal.classList.add("show");
+        }
+
+        // Helpers
+        function toast(msg){ console.log("TOAST:",msg); /* simple: could implement visual toast */ alert(msg) }
+        function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement("script"); s.src=src; s.onload=res; s.onerror=rej; document.head.appendChild(s) }) }
+
+        // Small escape hatch: remove products
+        document.getElementById("clearCart").addEventListener("click", clearCart);
+
+        // Reset sample on first load
+        seed();
+        renderProducts();
+        renderCart();
+
+        // Simple inline handlers
+        document.getElementById("searchBtn").addEventListener("click", ()=>renderProducts(document.getElementById("q").value.toLowerCase()));
+        document.getElementById("adminToggle").addEventListener("dblclick", ()=>{ alert("Developer mode: double-click toggled") });
+
+        // Basic keyboard shortcuts
+        window.addEventListener("keydown",(e)=>{ if(e.key==='/' && document.activeElement.tagName!=='INPUT' && document.activeElement.tagName!=='TEXTAREA'){ e.preventDefault(); document.getElementById("q").focus() } })
+
+        // Minimal security note: sanitize & validate server-side; never trust client for payments or admin access.
+    </script>
+</body>
+</html># E--commerce-website
