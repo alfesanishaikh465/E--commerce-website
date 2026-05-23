@@ -1,12 +1,12 @@
-Live Link = https://6hdggw.csb.app/
+Live Link = https://6hdggw.csb.app/ 
 
 
-Passwords
+Passwords 
 
-For Admin
-id = admin
+For Admin 
+id = admin 
 Password = admin123
 
-For Buyer
-id = buyer
+For Buyer 
+id = buyer 
 Password = buyer123
