@@ -148,10 +148,6 @@ This project is licensed under the MIT License.
 
 ---
 
-## 👨‍💻 Author
-
-Developed by **Alfesanishaikh465**
-
 🔗 GitHub Repository:
 [E--commerce-website Repository](https://github.com/alfesanishaikh465/E--commerce-website?utm_source=chatgpt.com)
 
